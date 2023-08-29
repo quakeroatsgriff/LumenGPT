@@ -16,7 +16,13 @@ def main():
             cleaned_text = re.sub( r'Previous/next navigation[\s\S]*', '', cleaned_text )
             # Get rid of all the header stuff at the top of the document
             cleaned_text = re.sub( r'^[\s\S]*\nIntro Psych', '', cleaned_text )
-
+            # Get rid of all HTML tags. JUST the tags, not the words in between the tags.
+            cleaned_text = re.sub( r'<[^>]*>', '', cleaned_text )
+            # Get rid of any and all "Show Answer" since it's pointless text
+            cleaned_text = re.sub( r'Show Answer', '', cleaned_text )
+            # Change new line characters into two spaces each so that words and their definitions
+            # are on the same line when being processed through the text splitter in database.py
+            cleaned_text = re.sub( r'\n', '  ', cleaned_text )
         # Open new file with edited changes
         filepath_new = './textbook_pages_new/'+file
         with open( filepath_new, "w+" ) as new_file:

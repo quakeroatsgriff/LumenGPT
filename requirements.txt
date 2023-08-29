@@ -3,3 +3,6 @@ bs4
 langchain
 openai
 python-dotenv
+chromadb
+pickle
+tiktoken

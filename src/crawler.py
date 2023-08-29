@@ -1,13 +1,5 @@
-import requests
-import os
-import openai
-import pandas as pd
-import numpy as np
 import re
 import dill as pickle
-
-from numpy.linalg import norm
-from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 from langchain.document_loaders.recursive_url_loader import RecursiveUrlLoader
 
