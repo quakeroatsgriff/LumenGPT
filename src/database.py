@@ -76,12 +76,12 @@ def create_db():
     load_dotenv()
     openai.api_key = os.getenv( "OPENAI_API_KEY" )
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size = 250,
-        chunk_overlap  = 20,
+        chunk_size = 500,
+        chunk_overlap  = 200,
         length_function = len,
     )
     # Get list of the content on each document page
-    loader = DirectoryLoader( '/home/griffen/Documents/lumen/LumenGPT/textbook_pages_new' )
+    loader = DirectoryLoader( 'textbook_pages_new' )
     doc_list = loader.load()
     # doc_list = load_documents( './textbook_pages_new/' )
 
@@ -90,6 +90,7 @@ def create_db():
         match = re.search(r'[^/]+$', doc.metadata['source'])
         if match:
             doc.metadata['source'] = match.group()
+        doc.metadata['source'] = re.sub( r'_', ' ', doc.metadata['source'] )
 
     # Split up text into tokens of small chunk sizes
     texts = text_splitter.split_documents(doc_list)
@@ -103,7 +104,9 @@ def create_db():
     for text in texts:
         text_chunks.append(text.page_content)
 
-    print(text_chunks)
+    # print(len(text_chunks))
+    # print(text_chunks)
+
     persist_directory = 'database'
     # OpenAI embeddings
     embedding = OpenAIEmbeddings()
@@ -134,7 +137,7 @@ def create_db():
     )
     # Persist the db to disk (save it to file)
     vectordb.persist()
-    # return vectordb
+    return vectordb
 
 
 def main():

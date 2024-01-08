@@ -54,21 +54,19 @@ def assemble_prompt( embedded_txt: str, question_prompt: str = None ):
     """
     instructions_txt = """Your job is to:
         1. Parse out the "page_content" and "source" text and match them together from the Ada 2 model.
-        This will be important to keep track of not only which source is associated with which page content,
-        but also the ordering of each element. Each of these pairs will be used for the foot notes later.
-
         2. Analyze the response from the previous model. Identify the topics mentioned
         and what exactly is being explained.
         3. Record the sources for each response from the Ada 2 model.
         4. Analyze the student's question and think of how you would respond to it with no
         background information.
         5. Combine your response with the responses from the Ada 2 model.
-        6. Next to each claim, cite where the claim comes from using the sources listed by the
-        Ada 2 model. You may use footnotes for this.
     """
+
     output_txt = """Your output should look like one short paragraph that answers the students
-    question. After every claim, cite it with a footnote ([4] for example). At the end of the
-    paragraph, create a list of footnotes for each source. Make sure to write out each source's location"""
+    question. At the end of the paragraph, print out an empty line and then state, "For more information on this topic, consider
+    reading these pages:". Then print out another empty new line, then on the next line provide a bulleted list of
+    each of the sources from the Ada 2 model.
+    """
 
     question_txt = question_prompt
     # Just in case no question was supplied, this is a default test question
@@ -78,19 +76,22 @@ def assemble_prompt( embedded_txt: str, question_prompt: str = None ):
     example_scenario_txt = """An example question is if the student asks 'Who is Sigmund Freud?"
         From the Ada 2 model, it states that Freud was 'was an Austrian neurologist who was fascinated
         by patients suffering from “hysteria” and neurosis.'. Your response may include that text from Ada 2
-        with a footnote at the end of it looking like [1]. At the end of your response paragraph, there will
-        be a bulleted list of footnotes that contains the footnote number and the name of the source. In this
-        case, it would look like [2] 'Early_Psychology:_Learn_It_5-Psychoanalytic_Theory_-_Intro_Psych'
+        with some more information or words to fill in the logic gaps. At the end of your response paragraph, there will
+        be a bulleted list of sources. BE SURE TO LIST EVERY SOURCE FROM THE ADA MODEL! DO NOT list the same
+        source twice if there are duplicates.
     """
     example_output_txt = """Sigmund Freud was an Austrian neurologist who was fascinated by patients
-        suffering from "hysteria" and neurosis [4]. He is considered one of the most influential and
-        well-known figures in the history of psychology [2]. Freud's interest in hysteria and neurosis
+        suffering from "hysteria" and neurosis. He is considered one of the most influential and
+        well-known figures in the history of psychology. Freud's interest in hysteria and neurosis
         led him to develop psychoanalytic theory, which explores the unconscious mind and the role of
-        unconscious desires and conflicts in shaping human behavior [2]. His theories have had a
-        significant impact on the field of psychology and continue to be studied and debated today [2].
+        unconscious desires and conflicts in shaping human behavior. His theories have had a
+        significant impact on the field of psychology and continue to be studied and debated today.
 
-        * [2] 'Intro_Psych'
-        * [4] 'Early_Psychology:_Learn_It_5—Psychoanalytic_Theory_–_Intro_Psych'
+        For more information on this topic, consider reading these pages:
+        - Early Psychology: Learn It 1—What is Psychology? – Intro_Psych
+        - Early Psychology: Learn It 2—Structuralism – Intro_Psych
+        - Early Psychology: Learn It 3—Functionalism – Intro_Psych
+        - Early Psychology: Learn It 5—Psychoanalytic Theory – Intro_Psych
     """
     prompt = f"""
         {background_txt}
@@ -113,19 +114,24 @@ def main():
     users_question = "Who is Sigmund Freud?"
     print("Ask the bot a prompt:")
     users_question = stdin.read()
-    print( "Input Prompt:\n", users_question )
+    print( 'Asking the bot: "',  users_question, '"', sep = "" )
     docs = retrieve_from_db( vectordb = vectordb, prompt = users_question )
     doc_content = {"source": [], "page_content": [] }
     for i, doc in enumerate( docs ):
-        print( doc.page_content )
-        print( doc.metadata )
-        print()
+        # print( doc.page_content )
+        # print( doc.metadata )
+        # print()
         doc_content["source"].append( doc.metadata.get("source") )
         doc_content["page_content"].append( doc.page_content )
-    print("Generating answer by GPT")
+    print("Generating answer by GPT...")
     prompt = assemble_prompt( doc_content, question_prompt = users_question )
     response = get_completion(prompt)
     print(response)
 
 if __name__ == "__main__":
     main()
+
+
+
+
+    # TODO New idea: get link to display in metadata
